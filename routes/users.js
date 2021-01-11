@@ -3,6 +3,7 @@ var router = express.Router();
 var user = require('../models/user');
 var crypto = require('crypto');
 var comment = require('../models/comment')
+var movie = require('../models/movie')
 
 const init_token = 'TKL02o';
 
@@ -127,7 +128,31 @@ router.post('/postComment', (req, res, next) => {
 
 //用户点赞
 router.post('/support', (req, res, next) => {
-
+  if (!req.body.movie_id) return res.json({
+    status: 1,
+    message: '电影id为空'
+  })
+  movie.findById(req.body.movie_id, (err, checkMovie) => {
+    if (checkMovie) {
+      movie.updateOne({
+        _id: req.body.movie_id
+      }, {
+        movieNumSuppose: checkMovie.movieNumSuppose + 1
+      }), (err, result) => {
+        if (err) {
+          res.json({
+            status: 1,
+            message: '点赞失败'
+          })
+        } else {
+          res.json({
+            status: 0,
+            message: '点赞成功'
+          })
+        }
+      }
+    }
+  })
 })
 
 //用户找回密码

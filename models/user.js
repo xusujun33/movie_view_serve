@@ -6,7 +6,7 @@ var user = mongoose.Schema({
     password: String,
     userMail: String,
     userPhone: String,
-    userAdmin: String,
+    userAdmin: Boolean,
     userPower: String,
     userStop: String,
 })
