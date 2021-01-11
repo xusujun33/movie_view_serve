@@ -1,6 +1,6 @@
 var mongoose = require('../common/db');
 
-
+//电影数据模型
 var comment = mongoose.Schema({
     movie_id: String,
     username: String,
