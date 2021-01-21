@@ -4,6 +4,7 @@ var user = require('../models/user');
 var crypto = require('crypto');
 var comment = require('../models/comment')
 var movie = require('../models/movie')
+var mail = require('../models/mail')
 
 const init_token = 'TKL02o';
 
@@ -124,6 +125,33 @@ router.post('/postComment', (req, res, next) => {
       })
     }
   });
+})
+
+//获取当前电影所有评论
+router.post('/comments', (req, res, next) => {
+  console.log(req.body);
+
+  if (!req.body.movieId) {
+    res.json({
+      status: 1,
+      message: '获取电影id失败'
+    })
+  } else {
+    comment.findByMovieId(req.body.movieId, (err, comments) => {
+      if (comments) {
+        res.json({
+          status: 0,
+          message: '评论获取成功',
+          data: comments
+        })
+      } else {
+        res.json({
+          status: 1,
+          message: '评论获取失败'
+        })
+      }
+    })
+  }
 })
 
 //用户点赞
@@ -263,7 +291,104 @@ router.post('/findPassword', (req, res, next) => {
 
 //用户发送站内信
 router.post('/sendEmail', (req, res, next) => {
+  if (!req.body.token) return res.json({
+    status: 1,
+    message: '用户登录状态出错'
+  });
+  if (!req.body.user_id) return res.json({
+    status: 1,
+    message: '用户登录状态出错'
+  });
+  if (!req.body.toUserName) return res.json({
+    status: 1,
+    message: '未选择收件人'
+  });
+  if (!req.body.title) return res.json({
+    status: 1,
+    message: '请输入标题'
+  });
+  if (!req.body.context) return res.json({
+    status: 1,
+    message: '请输入发送内容'
+  })
+  if (req.body.token == getMD5Password(req.body.user_id)) {
+    user.findByUsername(req.body.toUserName, (err, checkToUser) => {
+      if (checkToUser.length == 0) {
+        res.json({
+          status: 1,
+          message: '您发送的对象不存在'
+        })
+      } else {
+        var sendMail = new mail({
+          fromUser: req.body.user_id,
+          toUser: checkToUser[0]._id,
+          title: req.body.title,
+          context: req.body.context
+        })
+        sendMail.save(err => {
+          if (err) {
+            res.json({
+              status: 1,
+              message: '信息发送失败'
+            })
+          } else {
+            res.json({
+              status: 0,
+              message: '信息发送成功'
+            })
+          }
+        })
+      }
+    })
+  } else {
+    res.json({
+      status: 1,
+      message: '用户登录错误'
+    })
+  }
+
+})
+
+//用户接收站内信
+router.post('/showEmail', (req, res, next) => {
   //receive参数1 发送 2接收
+  if (!req.body.token) return res.json({
+    status: 1,
+    message: '用户登录状态出错'
+  });
+  if (!req.body.user_id) return res.json({
+    status: 1,
+    message: '用户登录状态出错'
+  });
+  if (!req.body.receive) return res.json({
+    status: 1,
+    message: '参数错误'
+  });
+  if (req.body.token == getMD5Password(req.body.user_id)) {
+    if (req.body.receive == 1) {
+      mail.findByFromUserId(req.body.user_id, (err, sendMails) => {
+        res.json({
+          status: 0,
+          message: '信息获取成功',
+          data: sendMails
+        })
+      })
+    }
+    if (req.body.receive == 2) {
+      mail.findByToUserId(req.body.user_id, (err, receiveMails) => {
+        res.json({
+          status: 0,
+          message: '信息获取成功',
+          data: receiveMails
+        })
+      })
+    }
+  } else {
+    res.json({
+      status: 1,
+      message: '用户登录错误'
+    })
+  }
 })
 
 //获取MD5值

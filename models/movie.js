@@ -13,7 +13,7 @@ var movie = mongoose.Schema({
 })
 
 
-
+//查找所有电影
 movie.statics.findAll = function (callback) {
     this.findAll({}, callback)
 }

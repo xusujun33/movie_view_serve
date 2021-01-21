@@ -8,13 +8,14 @@ var comment = mongoose.Schema({
     check: Boolean
 })
 
+//根据电影ID查找所有评论
 comment.statics.findByMovieId = function (id, callback) {
     this.find({
         movie_id: id,
-        check: true
     }, callback)
 }
 
+//查找所有评论
 comment.statics.findAll = function (callback) {
     this.findAll({}, callback)
 }
